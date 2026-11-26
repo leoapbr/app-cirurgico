@@ -407,3 +407,15 @@ describe("auditoria", () => {
     await expectDenied(superQuery("delete from audit_logs"));
   });
 });
+
+describe("convite aberto com outra conta logada", () => {
+  it("informa se o convite é para a conta da sessão, sem revelar o e-mail", async () => {
+    const guest = await createUser("guest-forme");
+    const token = await invite(adminA, orgA, guest.email, ["secretaria"]);
+    const [mine] = await as<{ ok: boolean }>(guest, "select org_invitation_is_for_me($1) as ok", [token]);
+    const [other] = await as<{ ok: boolean }>(medA1, "select org_invitation_is_for_me($1) as ok", [token]);
+    expect(mine.ok).toBe(true);
+    expect(other.ok).toBe(false);
+    await expectDenied(as(null, "select org_invitation_is_for_me($1)", [token]));
+  });
+});

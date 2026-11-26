@@ -13,7 +13,12 @@ export async function acceptInvitation(_: FormState, formData: FormData): Promis
   if (!parsed.success) return { error: "Convite inválido." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("accept_org_invitation", { p_token: parsed.data });
-  if (error) return { error: friendlyError(error, "Convite inválido ou expirado.") };
+  if (error) {
+    if (/outro e-mail/.test(error.message ?? "")) {
+      return { error: "Este convite foi enviado para outro e-mail. Saia e entre com o e-mail do convite." };
+    }
+    return { error: friendlyError(error, "Convite inválido ou expirado.") };
+  }
   revalidatePath("/", "layout");
   redirect("/");
 }

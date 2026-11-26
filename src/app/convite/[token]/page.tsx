@@ -30,6 +30,11 @@ export default async function ConvitePage({ params }: PageProps<"/convite/[token
   ]);
   const invite = (data as Preview[] | null)?.[0];
   const loggedIn = Boolean(claims?.claims?.sub);
+  const sessionEmail = String(claims?.claims?.email ?? "");
+  const { data: isForMe } =
+    loggedIn && invite?.status === "pendente"
+      ? await supabase.rpc("org_invitation_is_for_me", { p_token: token })
+      : { data: null };
   const here = `/convite/${encodeURIComponent(token)}`;
 
   return (
@@ -54,7 +59,18 @@ export default async function ConvitePage({ params }: PageProps<"/convite/[token
                   Enviado para {invite.email_hint}. Válido até {formatDateTime(invite.expires_at)}. Para aceitar, entre ou
                   crie a conta com esse mesmo e-mail.
                 </p>
-                {loggedIn ? (
+                {loggedIn && isForMe === false ? (
+                  <div className="grid gap-3">
+                    <Alert variant="destructive">
+                      Você está conectado como <strong>{sessionEmail}</strong>, mas este convite foi enviado para{" "}
+                      {invite.email_hint}. Saia e entre (ou crie a conta) com o e-mail do convite.
+                    </Alert>
+                    <form action="/auth/sair" method="post">
+                      <input type="hidden" name="next" value={here} />
+                      <Button type="submit" variant="outline">Sair e usar outro e-mail</Button>
+                    </form>
+                  </div>
+                ) : loggedIn ? (
                   <ActionForm action={acceptInvitation} submitLabel="Aceitar convite" pendingLabel="Aceitando…">
                     <input type="hidden" name="token" value={token} />
                   </ActionForm>
