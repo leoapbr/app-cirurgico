@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { publicEnv } from "@/lib/env";
+import { siteUrl } from "@/lib/site-url";
 import { safeNext } from "@/lib/auth/routes";
 import type { FormState } from "@/lib/form-state";
 
@@ -37,7 +37,7 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
     password: parsed.data.password,
     options: {
       data: { full_name: parsed.data.full_name },
-      emailRedirectTo: `${publicEnv().NEXT_PUBLIC_SITE_URL}/auth/confirm?next=${encodeURIComponent(next)}`,
+      emailRedirectTo: `${await siteUrl()}/auth/confirm?next=${encodeURIComponent(next)}`,
     },
   });
   if (error && error.code === "weak_password") return { error: "Senha fraca. Use uma senha mais longa e menos óbvia." };
@@ -50,7 +50,7 @@ export async function requestPasswordReset(_: FormState, formData: FormData): Pr
   if (!parsed.success) return { error: "Informe um e-mail válido" };
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data, {
-    redirectTo: `${publicEnv().NEXT_PUBLIC_SITE_URL}/auth/confirm?next=/redefinir-senha`,
+    redirectTo: `${await siteUrl()}/auth/confirm?next=/redefinir-senha`,
   });
   // Mesma resposta exista ou não a conta.
   return { success: "Se houver uma conta com este e-mail, enviamos um link para redefinir a senha." };

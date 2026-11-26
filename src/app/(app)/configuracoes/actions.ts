@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/dal";
 import { ROLE_LABEL, ROLES } from "@/lib/auth/roles";
 import { friendlyError, type FormState } from "@/lib/form-state";
-import { publicEnv } from "@/lib/env";
+import { siteUrl } from "@/lib/site-url";
 import { isMailSandbox, sendMail } from "@/lib/mail";
 import { newInviteToken } from "@/lib/tokens";
 
@@ -74,7 +74,7 @@ export async function createInvitation(_: FormState, formData: FormData): Promis
     return { error: friendlyError(error) };
   }
 
-  const link = `${publicEnv().NEXT_PUBLIC_SITE_URL}/convite/${token}`;
+  const link = `${await siteUrl()}/convite/${token}`;
   const papel = parsed.data.roles.map((r) => ROLE_LABEL[r]).join(", ");
   await sendMail({
     to: parsed.data.email,
@@ -145,7 +145,7 @@ export async function adminGrantDelegation(_: FormState, formData: FormData): Pr
     await sendMail({
       to: doctor.email,
       subject: `Nova delegação em ${ctx.activeOrg.organization.name}`,
-      text: `O administrador registrou que ${secretary?.full_name ?? "uma secretária"} passa a operar sua agenda e suas cirurgias em ${ctx.activeOrg.organization.name}.\n\nSe não reconhece, revogue em ${publicEnv().NEXT_PUBLIC_SITE_URL}/conta#delegacoes.`,
+      text: `O administrador registrou que ${secretary?.full_name ?? "uma secretária"} passa a operar sua agenda e suas cirurgias em ${ctx.activeOrg.organization.name}.\n\nSe não reconhece, revogue em ${await siteUrl()}/conta#delegacoes.`,
     });
   }
   revalidatePath(PATH);
