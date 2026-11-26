@@ -1,0 +1,18 @@
+# Configuração do Supabase CLI para desenvolvimento local (`supabase start`).
+# Valores omitidos usam o padrão do CLI.
+project_id = "app-cirurgico"
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/confirm"]
+minimum_password_length = 10
+
+[auth.email]
+enable_confirmations = true
+
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
